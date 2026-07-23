@@ -255,27 +255,18 @@ const ogImage = Astro.site ? new URL(grandes[0]!.src, Astro.site).href : undefin
     scale: 1.02;
   }
 
-  /* Foto recortada (PNG transparente): a guitarra flutua no creme e preenche
-     a moldura (recorte vertical), de modo a que o braço encoste/sangre no
-     limite direito — como na referência. Caixa larga + object-fit cover. */
+  /* Foto recortada (PNG transparente): mostra a guitarra INTEIRA a flutuar no
+     creme, com margem para respirar (espaço negativo intencional). Como a
+     guitarra é fotografada de frente (braço fino), não se tenta "encher" a
+     moldura — object-fit contain preserva-a toda, sem cortes. */
   .hero.recortada {
     background: transparent;
-    aspect-ratio: 2 / 1;
+    aspect-ratio: 3 / 2;
   }
 
   .hero.recortada :global(img) {
-    object-fit: cover;
-    object-position: left center;
-    padding: 0;
-    /* Zoom para a guitarra encher a moldura e o braço sangrar na borda
-       direita (reduz o creme nos cantos à volta do braço fino). */
-    scale: 1.22;
-    transform-origin: left center;
-  }
-
-  .hero.recortada:hover :global(img),
-  .hero.recortada:focus-visible :global(img) {
-    scale: 1.26;
+    object-fit: contain;
+    padding: 7%;
   }
 
   .miniaturas {
