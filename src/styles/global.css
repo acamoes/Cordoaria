@@ -51,6 +51,7 @@
   /* Layout */
   --max-width: 1440px;
   --page-margin: clamp(20px, 4.5vw, 64px);
+  --frame-margin: clamp(8px, 1.6vw, 20px);
 }
 
 /* ---------- Reset ---------- */
@@ -137,7 +138,7 @@ a {
 .frame {
   background: var(--background);
   border-radius: clamp(12px, 2vw, var(--radius-l));
-  margin: clamp(8px, 1.6vw, 20px);
+  margin: var(--frame-margin);
   min-height: calc(100vh - clamp(16px, 3.2vw, 40px));
   overflow: clip;
   display: flex;

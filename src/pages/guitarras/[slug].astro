@@ -255,18 +255,29 @@ const ogImage = Astro.site ? new URL(grandes[0]!.src, Astro.site).href : undefin
     scale: 1.02;
   }
 
-  /* Foto recortada (PNG transparente): mostra a guitarra INTEIRA a flutuar no
-     creme, com margem para respirar (espaço negativo intencional). Como a
-     guitarra é fotografada de frente (braço fino), não se tenta "encher" a
-     moldura — object-fit contain preserva-a toda, sem cortes. */
+  /* Foto recortada (PNG transparente): a guitarra é mostrada INTEIRA, mas o
+     hero "sangra" (full-bleed) até à borda interior direita da .frame, para o
+     braço tocar a moldura castanha escura da página. A margem-direita negativa
+     alarga o hero para lá da coluna; o overflow:clip da .frame corta na borda
+     arredondada. object-position: right alinha a guitarra à direita. */
   .hero.recortada {
     background: transparent;
     aspect-ratio: 3 / 2;
+    max-height: min(78vh, 680px);
+    /* Alarga o hero para lá da coluna, até à borda interior direita da .frame
+       (o botão tem width:100% explícito, por isso alarga-se a largura em vez de
+       usar margem negativa). O overflow:clip da .frame corta na borda. */
+    --bleed-right: calc(
+      var(--page-margin) +
+        max(0px, (100vw - 2 * var(--frame-margin) - var(--max-width)) / 2)
+    );
+    width: calc(100% + var(--bleed-right));
   }
 
   .hero.recortada :global(img) {
     object-fit: contain;
-    padding: 7%;
+    object-position: right center;
+    padding: 0;
   }
 
   .miniaturas {
