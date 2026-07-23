@@ -16,6 +16,14 @@ torna-se o URL da página (ex.: a pasta `fender-telecaster` fica em
    juntar quantas extra quiseres. Os nomes dos ficheiros são livres — o que
    conta é o que declarares no `index.md`.
 
+   **Dois formatos, dois comportamentos:**
+   - **`.jpg`** — foto normal; preenche o cartão (recorte `cover`) e o
+     `npm run fotos` otimiza-a se for grande.
+   - **`.png`** — foto **recortada** (fundo transparente removido por ti);
+     aparece **inteira** sobre o castanho escuro do site e **nunca é alterada**
+     pelos scripts — fica no repositório em alta resolução. (No site são
+     geradas variantes webp otimizadas, com a transparência preservada.)
+
 3. **Cria o ficheiro `index.md`** dentro da pasta, com este template:
 
    ```markdown

@@ -3,9 +3,13 @@
  *
  * Uso: npm run fotos
  *
- * Percorre src/content/guitarras/** e, para cada .jpg/.jpeg/.png com mais de
+ * Percorre src/content/guitarras/** e, para cada .jpg/.jpeg com mais de
  * 2000px de largura/altura ou mais de 1.5 MB, redimensiona para o máximo de
  * 2000px e recomprime, substituindo o ficheiro original.
+ *
+ * Os .png NUNCA são tocados: são fotos recortadas de propósito (fundo
+ * transparente, alta resolução) — o site mostra-as inteiras sobre o castanho
+ * escuro e gera variantes webp otimizadas no build.
  */
 import { readdir, stat, rename, unlink } from 'node:fs/promises';
 import path from 'node:path';
@@ -14,7 +18,7 @@ import sharp from 'sharp';
 const RAIZ = path.resolve('src/content/guitarras');
 const LADO_MAXIMO = 2000;
 const TAMANHO_MAXIMO = 1.5 * 1024 * 1024; // 1.5 MB
-const EXTENSOES = new Set(['.jpg', '.jpeg', '.png']);
+const EXTENSOES = new Set(['.jpg', '.jpeg']);
 
 async function* percorrer(dir) {
   for (const item of await readdir(dir, { withFileTypes: true })) {
@@ -49,11 +53,7 @@ for await (const ficheiro of percorrer(RAIZ)) {
     withoutEnlargement: true,
   });
 
-  if (ext === '.png') {
-    await pipeline.png({ compressionLevel: 9 }).toFile(temporario);
-  } else {
-    await pipeline.jpeg({ quality: 84, mozjpeg: true }).toFile(temporario);
-  }
+  await pipeline.jpeg({ quality: 84, mozjpeg: true }).toFile(temporario);
 
   const novo = await stat(temporario);
   if (novo.size < info.size) {

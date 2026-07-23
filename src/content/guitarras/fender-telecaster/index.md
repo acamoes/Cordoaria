@@ -4,7 +4,7 @@ marca: Fender
 modelo: Telecaster '52 Reissue
 tipo: elétrica
 anoAquisicao: 2019
-ordem: 1
+ordem: 2
 fotos:
   foto1: ./foto-1.jpg
   foto2: ./foto-2.jpg

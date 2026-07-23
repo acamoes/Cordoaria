@@ -4,7 +4,7 @@ marca: Taylor
 modelo: 314ce
 tipo: acústica
 anoAquisicao: 2021
-ordem: 2
+ordem: 3
 fotos:
   foto1: ./foto-1.jpg
   foto2: ./foto-2.jpg

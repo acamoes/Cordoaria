@@ -13,6 +13,8 @@ const { nome, marca, modelo, tipo, anoAquisicao, fotos } = guitarra.data;
 const url = withBase(`/guitarras/${guitarra.id}/`);
 const marcaModelo = [marca, modelo].filter(Boolean).join(' ');
 const delay = Math.min(index * 90, 540);
+// PNG = foto recortada (fundo transparente): mostra-se inteira sobre o castanho
+const recortada = fotos.foto1.format === 'png';
 ---
 
 <article
@@ -21,7 +23,7 @@ const delay = Math.min(index * 90, 540);
   style={`--reveal-delay: ${delay}ms`}
 >
   <a class="card-link" href={url}>
-    <div class="card-media">
+    <div class:list={['card-media', { recortada }]}>
       <Image
         src={fotos.foto1}
         alt={`Foto principal da guitarra ${nome}`}
@@ -68,7 +70,7 @@ const delay = Math.min(index * 90, 540);
   .card-media {
     aspect-ratio: 4 / 5;
     overflow: clip;
-    background: var(--cream);
+    background: var(--background-dark);
   }
 
   .card-media :global(img) {
@@ -76,6 +78,12 @@ const delay = Math.min(index * 90, 540);
     height: 100%;
     object-fit: cover;
     transition: scale 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* Fotos recortadas (PNG transparente): guitarra inteira sobre o castanho */
+  .card-media.recortada :global(img) {
+    object-fit: contain;
+    padding: 7%;
   }
 
   .card:hover .card-media :global(img) {

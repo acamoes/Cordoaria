@@ -29,6 +29,10 @@ const fotosLightbox = grandes.map((img, i) => ({
       : `Foto extra ${i - 3} da guitarra ${nome}`,
 }));
 
+// Hero = foto 1 (índice 0). Miniaturas = todas as fotos (incluindo a foto 1
+// como primeira), cada uma com o índice que abre a foto no lightbox.
+const miniaturas = todas.map((foto, i) => ({ foto, i }));
+
 const marcaModelo = [marca, modelo].filter(Boolean).join(' ');
 
 const specsLista: [string, string][] = (
@@ -58,100 +62,95 @@ const ogImage = Astro.site ? new URL(grandes[0]!.src, Astro.site).href : undefin
     </a>
   </nav>
 
-  <header class="cabecalho">
-    <p class="caption categoria reveal">
-      <span class="categoria-tipo">{TIPO_LABEL[tipo]}</span>
-      <span aria-hidden="true">·</span>
-      <span>Adquirida em {anoAquisicao}</span>
-    </p>
-    <h1 class="reveal" style="--reveal-delay: 70ms">{nome}</h1>
-    {
-      marcaModelo && (
-        <p class="marca-modelo text-secondary reveal" style="--reveal-delay: 140ms">
-          {marcaModelo}
-        </p>
-      )
-    }
-  </header>
+  <article class="produto">
+    {/* ---- Bloco superior: categoria + título + marca ---- */}
+    <header class="info-top">
+      <p class="caption categoria reveal">
+        <span class="categoria-tipo">{TIPO_LABEL[tipo]}</span>
+        <span aria-hidden="true">·</span>
+        <span>Adquirida em {anoAquisicao}</span>
+      </p>
+      <h1 class="titulo reveal" style="--reveal-delay: 70ms">{nome}</h1>
+      {
+        marcaModelo && (
+          <p class="marca-modelo text-secondary reveal" style="--reveal-delay: 140ms">
+            {marcaModelo}
+          </p>
+        )
+      }
+    </header>
 
-  {/* Mosaico das 4 fotos obrigatórias */}
-  <section class="mosaico" aria-label={`Fotos principais da ${nome}`}>
-    {
-      principais.map((foto, i) => (
-        <button
-          class="mosaico-item reveal"
-          style={`--reveal-delay: ${120 + i * 110}ms`}
-          type="button"
-          data-lightbox={i}
-          aria-label={`Ampliar foto ${i + 1} da ${nome}`}
-        >
-          <Image
-            src={foto}
-            alt={`Foto ${i + 1} da guitarra ${nome}`}
-            widths={[480, 800, 1200]}
-            sizes={
-              i === 0
-                ? '(max-width: 820px) 94vw, 56vw'
-                : '(max-width: 820px) 30vw, 36vw'
-            }
-            loading="eager"
-            {...(i === 0 ? { 'transition:name': `foto-hero-${guitarra.id}` } : {})}
-          />
-        </button>
-      ))
-    }
-  </section>
+    {/* ---- Media: foto 1 em destaque + tira de miniaturas ---- */}
+    <div class="media">
+      <button
+        class:list={['hero', 'reveal', { recortada: fotos.foto1.format === 'png' }]}
+        style="--reveal-delay: 120ms"
+        type="button"
+        data-lightbox="0"
+        aria-label={`Ampliar foto 1 da ${nome}`}
+      >
+        <Image
+          src={fotos.foto1}
+          alt={`Foto 1 da guitarra ${nome}`}
+          widths={[600, 900, 1400]}
+          sizes="(max-width: 900px) 94vw, 64vw"
+          loading="eager"
+          transition:name={`foto-hero-${guitarra.id}`}
+        />
+      </button>
 
-  <div class="conteudo">
-    <section class="descricao reveal" aria-label="Descrição">
-      <Content />
-    </section>
-
-    <aside class="specs-painel reveal" style="--reveal-delay: 90ms" aria-label="Especificações">
-      <h3 class="specs-titulo">Ficha</h3>
-      <dl class="specs">
+      <div class="miniaturas reveal" style="--reveal-delay: 200ms" role="group" aria-label="Mais fotos">
         {
-          specsLista.map(([rotulo, valor]) => (
-            <div class="spec">
-              <dt class="caption">{rotulo}</dt>
-              <dd>{valor}</dd>
-            </div>
-          ))
-        }
-      </dl>
-    </aside>
-  </div>
-
-  {
-    extras.length > 0 && (
-      <section class="extras" aria-label="Mais fotos">
-        <h3 class="extras-titulo reveal">Mais Fotos</h3>
-        <div class="extras-grelha">
-          {extras.map((foto, i) => (
+          miniaturas.map(({ foto, i }) => (
             <button
-              class="extra reveal"
-              style={`--reveal-delay: ${i * 90}ms`}
+              class:list={['mini', { recortada: foto.format === 'png' }]}
               type="button"
-              data-lightbox={4 + i}
-              aria-label={`Ampliar foto extra ${i + 1} da ${nome}`}
+              data-lightbox={i}
+              aria-label={`Ampliar foto ${i + 1} da ${nome}`}
             >
               <Image
                 src={foto}
-                alt={`Foto extra ${i + 1} da guitarra ${nome}`}
-                widths={[240, 420]}
-                sizes="(max-width: 640px) 44vw, 200px"
+                alt={`Foto ${i + 1} da guitarra ${nome}`}
+                widths={[220, 400]}
+                sizes="(max-width: 900px) 28vw, 150px"
                 loading="lazy"
               />
             </button>
-          ))}
-        </div>
-      </section>
-    )
-  }
+          ))
+        }
+      </div>
+    </div>
 
-  <div class="rodape-navegacao reveal">
-    <a class="btn btn-secondary" href={withBase('/')}>Voltar à galeria</a>
-  </div>
+    {/* ---- Bloco inferior: descrição + ficha + CTA ---- */}
+    <div class="info-bottom">
+      <section class="descricao reveal" aria-label="Descrição">
+        <Content />
+      </section>
+
+      {
+        specsLista.length > 0 && (
+          <section class="ficha reveal" style="--reveal-delay: 90ms" aria-label="Especificações">
+            <h2 class="ficha-titulo">Ficha</h2>
+            <dl class="specs">
+              {specsLista.map(([rotulo, valor]) => (
+                <div class="spec">
+                  <dt class="caption">{rotulo}</dt>
+                  <dd>{valor}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+        )
+      }
+
+      <div class="acoes reveal" style="--reveal-delay: 140ms">
+        <button class="btn btn-primary" type="button" data-lightbox="0">
+          Ver todas as fotos
+        </button>
+        <a class="btn btn-secondary" href={withBase('/')}>Voltar à galeria</a>
+      </div>
+    </div>
+  </article>
 
   <Lightbox fotos={fotosLightbox} />
 </Base>
@@ -178,17 +177,43 @@ const ogImage = Astro.site ? new URL(grandes[0]!.src, Astro.site).href : undefin
     color: var(--text);
   }
 
-  .cabecalho {
-    margin-bottom: var(--space-5);
+  /* ---- Grelha de produto: info à esquerda, media à direita ---- */
+  .produto {
+    display: grid;
+    grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.28fr);
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      'top    media'
+      'bottom media';
+    gap: var(--space-5) var(--space-7);
+    align-items: start;
+    padding-bottom: var(--space-7);
   }
 
+  .info-top {
+    grid-area: top;
+  }
+
+  .media {
+    grid-area: media;
+    position: sticky;
+    top: var(--space-4);
+  }
+
+  .info-bottom {
+    grid-area: bottom;
+    max-width: 52ch;
+  }
+
+  /* ---- Info superior ---- */
   .categoria {
     display: flex;
+    flex-wrap: wrap;
     gap: var(--space-2);
     text-transform: uppercase;
     letter-spacing: 0.16em;
     color: var(--text-secondary);
-    margin-bottom: var(--space-2);
+    margin-bottom: var(--space-3);
   }
 
   .categoria-tipo {
@@ -196,79 +221,103 @@ const ogImage = Astro.site ? new URL(grandes[0]!.src, Astro.site).href : undefin
     font-weight: 500;
   }
 
+  .titulo {
+    font-size: clamp(40px, 5.5vw, 64px);
+  }
+
   .marca-modelo {
     font-size: 20px;
-    margin-top: var(--space-2);
+    margin-top: var(--space-3);
   }
 
-  /* ---- Mosaico: foto 1 dominante + 3 secundárias ----
-     O aspect-ratio no contentor dá altura definida às rows 1fr —
-     sem ele, as fotos da coluna direita colapsariam para altura 0. */
-  .mosaico {
-    display: grid;
-    grid-template-columns: 1.55fr 1fr;
-    grid-template-rows: repeat(3, minmax(0, 1fr));
-    gap: var(--space-3);
-    margin-bottom: var(--space-7);
-    aspect-ratio: 4 / 3;
-    max-height: 88vh;
-  }
-
-  .mosaico-item {
+  /* ---- Media ---- */
+  .hero {
+    display: block;
+    width: 100%;
     padding: 0;
     border: 0;
-    background: var(--cream);
-    border-radius: 24px;
+    background: var(--background-dark);
+    border-radius: var(--radius-l);
     overflow: clip;
     cursor: zoom-in;
-    display: block;
-    min-height: 0;
+    aspect-ratio: 4 / 3;
   }
 
-  .mosaico-item:first-child {
-    grid-row: 1 / -1;
-  }
-
-  .mosaico-item :global(img) {
+  .hero :global(img) {
     width: 100%;
     height: 100%;
     object-fit: cover;
     transition: scale 0.6s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
-  .mosaico-item:hover :global(img),
-  .mosaico-item:focus-visible :global(img) {
+  .hero:hover :global(img),
+  .hero:focus-visible :global(img) {
+    scale: 1.02;
+  }
+
+  /* Foto recortada (PNG transparente): a guitarra flutua no creme e preenche
+     a moldura (recorte vertical), de modo a que o braço encoste/sangre no
+     limite direito — como na referência. Caixa larga + object-fit cover. */
+  .hero.recortada {
+    background: transparent;
+    aspect-ratio: 2 / 1;
+  }
+
+  .hero.recortada :global(img) {
+    object-fit: cover;
+    object-position: left center;
+    padding: 0;
+    /* Zoom para a guitarra encher a moldura e o braço sangrar na borda
+       direita (reduz o creme nos cantos à volta do braço fino). */
+    scale: 1.22;
+    transform-origin: left center;
+  }
+
+  .hero.recortada:hover :global(img),
+  .hero.recortada:focus-visible :global(img) {
+    scale: 1.26;
+  }
+
+  .miniaturas {
+    display: flex;
+    gap: var(--space-3);
+    margin-top: var(--space-3);
+    overflow-x: auto;
+    padding-bottom: var(--space-1);
+    scrollbar-width: thin;
+  }
+
+  .mini {
+    flex: 0 0 auto;
+    width: clamp(84px, 12vw, 150px);
+    aspect-ratio: 1;
+    padding: 0;
+    background: #ffffff;
+    border: 2px solid transparent;
+    border-radius: var(--radius-m);
+    overflow: clip;
+    cursor: zoom-in;
+    transition: border-color 0.25s ease, scale 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .mini:hover,
+  .mini:focus-visible {
     scale: 1.03;
+    border-color: var(--secondary);
   }
 
-  @media (max-width: 820px) {
-    .mosaico {
-      grid-template-columns: repeat(3, 1fr);
-      grid-template-rows: auto auto;
-      aspect-ratio: auto;
-      max-height: none;
-    }
-
-    .mosaico-item:first-child {
-      grid-column: 1 / -1;
-      grid-row: auto;
-      aspect-ratio: 4 / 5;
-    }
-
-    .mosaico-item:not(:first-child) {
-      aspect-ratio: 1;
-    }
+  .mini :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
 
-  /* ---- Descrição + ficha ---- */
-  .conteudo {
-    display: grid;
-    grid-template-columns: minmax(0, 1.6fr) minmax(280px, 1fr);
-    gap: var(--space-6);
-    align-items: start;
-    margin-bottom: var(--space-7);
+  .mini.recortada :global(img) {
+    object-fit: contain;
+    padding: 8%;
   }
 
+  /* ---- Info inferior: descrição + ficha + ações ---- */
   .descricao :global(p) {
     margin-bottom: var(--space-3);
   }
@@ -283,24 +332,22 @@ const ogImage = Astro.site ? new URL(grandes[0]!.src, Astro.site).href : undefin
     margin-block: var(--space-4) var(--space-2);
   }
 
-  .specs-painel {
-    background: var(--surface);
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius-m);
-    padding: var(--space-4);
-    box-shadow: var(--shadow);
-    position: sticky;
-    top: var(--space-3);
+  .ficha {
+    margin-top: var(--space-5);
+    border-top: 1px solid var(--border);
+    padding-top: var(--space-4);
   }
 
-  .specs-titulo {
-    margin-bottom: var(--space-3);
+  .ficha-titulo {
+    font-size: 24px;
     color: var(--secondary);
+    margin-bottom: var(--space-3);
   }
 
   .specs {
     display: grid;
-    gap: var(--space-3);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3) var(--space-4);
   }
 
   .spec dt {
@@ -314,76 +361,51 @@ const ogImage = Astro.site ? new URL(grandes[0]!.src, Astro.site).href : undefin
     font-weight: 500;
   }
 
-  .spec:not(:last-child) {
-    border-bottom: 1px solid var(--border-light);
-    padding-bottom: var(--space-3);
-  }
-
-  @media (max-width: 900px) {
-    .conteudo {
-      grid-template-columns: 1fr;
-      gap: var(--space-5);
-    }
-
-    .specs-painel {
-      position: static;
-    }
-  }
-
-  /* ---- Extras ---- */
-  .extras {
-    margin-bottom: var(--space-7);
-  }
-
-  .extras-titulo {
-    margin-bottom: var(--space-4);
-  }
-
-  .extras-grelha {
+  .acoes {
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-3);
+    margin-top: var(--space-6);
   }
 
-  .extra {
-    padding: 0;
-    background: var(--cream);
-    border: 2px solid transparent;
-    border-radius: 24px;
-    overflow: clip;
-    cursor: zoom-in;
-    width: 180px;
-    aspect-ratio: 1;
-    transition: border-color 0.25s ease, scale 0.35s cubic-bezier(0.22, 1, 0.36, 1);
-  }
+  /* ---- Responsivo: empilha título → media → descrição/ficha/ações ---- */
+  @media (max-width: 900px) {
+    .produto {
+      grid-template-columns: 1fr;
+      grid-template-areas:
+        'top'
+        'media'
+        'bottom';
+      gap: var(--space-5);
+    }
 
-  .extra:hover,
-  .extra:focus-visible {
-    scale: 1.03;
-    border-color: var(--background-dark);
-  }
+    .media {
+      position: static;
+    }
 
-  .extra :global(img) {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  @media (max-width: 640px) {
-    .extra {
-      width: calc(50% - var(--space-3) / 2);
+    .info-bottom {
+      max-width: none;
     }
   }
 
-  .rodape-navegacao {
-    display: flex;
-    justify-content: center;
-    padding-block: var(--space-3) var(--space-4);
+  @media (max-width: 560px) {
+    .hero {
+      aspect-ratio: 4 / 4.4;
+    }
+
+    .specs {
+      grid-template-columns: 1fr;
+    }
+
+    .acoes .btn {
+      flex: 1 1 auto;
+      justify-content: center;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .mosaico-item:hover :global(img),
-    .extra:hover {
+    .hero:hover :global(img),
+    .mini:hover {
       scale: none;
     }
   }

@@ -4,7 +4,7 @@ marca: APC
 modelo: 8C Luthier
 tipo: clássica
 anoAquisicao: 2015
-ordem: 3
+ordem: 4
 fotos:
   foto1: ./foto-1.jpg
   foto2: ./foto-2.jpg
