@@ -1,0 +1,169 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import GuitarCard from '../components/GuitarCard.astro';
+import { ordenarGuitarras, TIPO_LABEL } from '../lib/utils';
+
+const guitarras = ordenarGuitarras(await getCollection('guitarras'));
+
+// Tipos existentes na coleção, pela ordem do design system
+const ordemTipos = ['elétrica', 'acústica', 'clássica', 'baixo', 'outra'];
+const tiposPresentes = ordemTipos.filter((t) =>
+  guitarras.some((g) => g.data.tipo === t)
+);
+---
+
+<Base>
+  <section class="hero">
+    <p class="caption hero-eyebrow reveal">Coleção pessoal</p>
+    <h1 class="reveal" style="--reveal-delay: 80ms">As Guitarras</h1>
+    <p class="hero-intro text-secondary reveal" style="--reveal-delay: 160ms">
+      {guitarras.length}
+      {guitarras.length === 1 ? 'guitarra registada' : 'guitarras registadas'} —
+      cada uma com a sua história, as suas madeiras e o seu lugar na cordoaria.
+    </p>
+  </section>
+
+  {
+    tiposPresentes.length > 1 && (
+      <nav class="filtros reveal" style="--reveal-delay: 220ms" aria-label="Filtrar por tipo">
+        <button class="filtro is-active" data-filtro="todas" aria-pressed="true">
+          Todas
+        </button>
+        {tiposPresentes.map((t) => (
+          <button class="filtro" data-filtro={t} aria-pressed="false">
+            {TIPO_LABEL[t]}
+          </button>
+        ))}
+      </nav>
+    )
+  }
+
+  <section class="grelha" aria-label="Galeria de guitarras">
+    {guitarras.map((g, i) => <GuitarCard guitarra={g} index={i} />)}
+  </section>
+
+  <p class="sem-resultados" hidden>Nenhuma guitarra deste tipo — para já.</p>
+</Base>
+
+<script>
+  function initFiltros() {
+    const filtros = document.querySelectorAll<HTMLButtonElement>('.filtro');
+    const cards = document.querySelectorAll<HTMLElement>('.grelha .card');
+    const semResultados = document.querySelector<HTMLElement>('.sem-resultados');
+    if (filtros.length === 0) return;
+
+    filtros.forEach((botao) => {
+      botao.addEventListener('click', () => {
+        const alvo = botao.dataset.filtro;
+
+        filtros.forEach((b) => {
+          const ativo = b === botao;
+          b.classList.toggle('is-active', ativo);
+          b.setAttribute('aria-pressed', String(ativo));
+        });
+
+        let visiveis = 0;
+        cards.forEach((card) => {
+          const mostrar = alvo === 'todas' || card.dataset.tipo === alvo;
+          card.hidden = !mostrar;
+          if (mostrar) {
+            visiveis++;
+            // pequena animação de reentrada ao filtrar
+            card.classList.remove('pop');
+            void card.offsetWidth;
+            card.classList.add('pop');
+          }
+        });
+
+        if (semResultados) semResultados.hidden = visiveis > 0;
+      });
+    });
+  }
+
+  document.addEventListener('astro:page-load', initFiltros);
+</script>
+
+<style>
+  .hero {
+    padding-block: var(--space-5) var(--space-5);
+  }
+
+  .hero-eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--secondary);
+    font-weight: 500;
+    margin-bottom: var(--space-2);
+  }
+
+  .hero-intro {
+    margin-top: var(--space-3);
+    font-size: 20px;
+    max-width: 54ch;
+  }
+
+  .filtros {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-block: var(--space-3) var(--space-5);
+  }
+
+  .filtro {
+    font-family: var(--font-body);
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-pill);
+    padding: 10px 22px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  }
+
+  .filtro:hover {
+    border-color: var(--text);
+  }
+
+  .filtro.is-active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #ffffff;
+  }
+
+  .grelha {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr));
+    gap: var(--space-5);
+    padding-bottom: var(--space-5);
+  }
+
+  .grelha :global(.card.pop) {
+    animation: pop-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  @keyframes pop-in {
+    from {
+      opacity: 0;
+      transform: translateY(14px) scale(0.985);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .sem-resultados {
+    color: var(--text-secondary);
+    padding-block: var(--space-6);
+    text-align: center;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .grelha :global(.card.pop) {
+      animation: none;
+    }
+  }
+</style>

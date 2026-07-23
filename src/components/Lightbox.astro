@@ -1,0 +1,252 @@
+---
+/**
+ * Lightbox de galeria: <dialog> em ecrã inteiro com navegação por
+ * botões, teclado (←/→/Esc) e swipe. Os elementos que abrem o lightbox
+ * devem ter o atributo data-lightbox="<índice>".
+ */
+interface Foto {
+  src: string;
+  alt: string;
+}
+
+interface Props {
+  fotos: Foto[];
+}
+
+const { fotos } = Astro.props;
+const dados = JSON.stringify(fotos).replace(/</g, '\\u003c');
+---
+
+<dialog class="lightbox" aria-label="Fotos em ecrã inteiro">
+  <button class="lb-btn lb-fechar" type="button" data-lb-fechar aria-label="Fechar">
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
+      <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+    </svg>
+  </button>
+
+  <button class="lb-btn lb-seta lb-anterior" type="button" data-lb-anterior aria-label="Foto anterior">
+    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" aria-hidden="true">
+      <path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+  </button>
+
+  <figure class="lb-figura">
+    <img class="lb-img" alt="" decoding="async" />
+  </figure>
+
+  <button class="lb-btn lb-seta lb-seguinte" type="button" data-lb-seguinte aria-label="Foto seguinte">
+    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" aria-hidden="true">
+      <path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+  </button>
+
+  <p class="lb-contador caption">
+    <span data-lb-atual>1</span>&nbsp;/&nbsp;{fotos.length}
+  </p>
+</dialog>
+
+<script type="application/json" id="lb-dados" set:html={dados} />
+
+<script>
+  function initLightbox() {
+    const dialog = document.querySelector<HTMLDialogElement>('dialog.lightbox');
+    const dadosEl = document.getElementById('lb-dados');
+    if (!dialog || !dadosEl) return;
+
+    const fotos: { src: string; alt: string }[] = JSON.parse(dadosEl.textContent ?? '[]');
+    const img = dialog.querySelector<HTMLImageElement>('.lb-img')!;
+    const contador = dialog.querySelector<HTMLElement>('[data-lb-atual]')!;
+    let atual = 0;
+
+    function mostrar(i: number) {
+      atual = (i + fotos.length) % fotos.length;
+      const foto = fotos[atual]!;
+      img.classList.remove('lb-entrar');
+      void img.offsetWidth; // reinicia a animação
+      img.src = foto.src;
+      img.alt = foto.alt;
+      img.classList.add('lb-entrar');
+      contador.textContent = String(atual + 1);
+      // pré-carrega vizinhas
+      for (const j of [atual + 1, atual - 1]) {
+        const viz = fotos[(j + fotos.length) % fotos.length];
+        if (viz) new Image().src = viz.src;
+      }
+    }
+
+    function abrir(i: number) {
+      mostrar(i);
+      dialog!.showModal();
+      document.body.style.overflow = 'hidden';
+    }
+
+    dialog.addEventListener('close', () => {
+      document.body.style.overflow = '';
+    });
+
+    // Gatilhos espalhados pela página
+    document.querySelectorAll<HTMLElement>('[data-lightbox]').forEach((el) => {
+      el.addEventListener('click', () => abrir(Number(el.dataset.lightbox ?? 0)));
+    });
+
+    dialog.querySelector('[data-lb-fechar]')?.addEventListener('click', () => dialog.close());
+    dialog.querySelector('[data-lb-anterior]')?.addEventListener('click', () => mostrar(atual - 1));
+    dialog.querySelector('[data-lb-seguinte]')?.addEventListener('click', () => mostrar(atual + 1));
+
+    // Clique no fundo fecha
+    dialog.addEventListener('click', (e) => {
+      if (e.target === dialog) dialog.close();
+    });
+
+    dialog.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') mostrar(atual - 1);
+      if (e.key === 'ArrowRight') mostrar(atual + 1);
+    });
+
+    // Swipe em ecrãs táteis
+    let inicioX = 0;
+    let inicioY = 0;
+    dialog.addEventListener('pointerdown', (e) => {
+      inicioX = e.clientX;
+      inicioY = e.clientY;
+    });
+    dialog.addEventListener('pointerup', (e) => {
+      const dx = e.clientX - inicioX;
+      const dy = e.clientY - inicioY;
+      if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy)) {
+        mostrar(dx < 0 ? atual + 1 : atual - 1);
+      }
+    });
+  }
+
+  document.addEventListener('astro:page-load', initLightbox);
+</script>
+
+<style>
+  .lightbox {
+    /* ocupa o ecrã todo; o conteúdo é posicionado por grid */
+    width: 100vw;
+    height: 100dvh;
+    max-width: none;
+    max-height: none;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    display: grid;
+    place-items: center;
+    inset: 0;
+  }
+
+  .lightbox:not([open]) {
+    display: none;
+  }
+
+  .lightbox::backdrop {
+    background: rgba(30, 29, 32, 0.94);
+  }
+
+  .lb-figura {
+    grid-area: 1 / 1;
+    display: grid;
+    place-items: center;
+  }
+
+  /* Limites diretos em unidades de viewport: max-height percentual
+     não funciona dentro de uma track de grid dimensionada pelo conteúdo. */
+  .lb-img {
+    max-width: min(92vw, 1200px);
+    max-height: 86dvh;
+    object-fit: contain;
+    border-radius: var(--radius-s);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .lb-img.lb-entrar {
+    animation: lb-fade 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  @keyframes lb-fade {
+    from {
+      opacity: 0;
+      transform: translateY(10px) scale(0.99);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .lb-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-pill);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: rgba(30, 29, 32, 0.55);
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    z-index: 2;
+  }
+
+  .lb-btn:hover {
+    background: rgba(193, 119, 35, 0.85);
+  }
+
+  .lb-fechar {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+  }
+
+  .lb-seta {
+    position: fixed;
+    top: 50%;
+    translate: 0 -50%;
+  }
+
+  .lb-anterior {
+    left: 16px;
+  }
+
+  .lb-seguinte {
+    right: 16px;
+  }
+
+  .lb-contador {
+    position: fixed;
+    bottom: 18px;
+    left: 50%;
+    translate: -50% 0;
+    color: rgba(255, 255, 255, 0.85);
+    letter-spacing: 0.12em;
+  }
+
+  @media (max-width: 640px) {
+    .lb-seta {
+      top: auto;
+      bottom: 14px;
+      translate: none;
+    }
+
+    .lb-anterior {
+      left: 20px;
+    }
+
+    .lb-seguinte {
+      right: 20px;
+    }
+
+    .lb-img {
+      max-height: 76dvh;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .lb-img.lb-entrar {
+      animation: none;
+    }
+  }
+</style>

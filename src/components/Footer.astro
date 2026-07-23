@@ -1,0 +1,26 @@
+---
+const ano = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <span class="caption">Cordoaria · Coleção pessoal de guitarras</span>
+    <span class="caption">{ano}</span>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    border-top: 1px solid var(--border-light);
+    margin-top: auto;
+  }
+
+  .footer-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding-block: var(--space-4);
+    color: var(--text-secondary);
+  }
+</style>

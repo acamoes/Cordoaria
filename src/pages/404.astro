@@ -1,0 +1,35 @@
+---
+import Base from '../layouts/Base.astro';
+import { withBase } from '../lib/utils';
+---
+
+<Base title="Página não encontrada">
+  <section class="nao-encontrada">
+    <p class="caption eyebrow reveal">Erro 404</p>
+    <h1 class="reveal" style="--reveal-delay: 70ms">Corda Partida</h1>
+    <p class="text-secondary reveal" style="--reveal-delay: 140ms">
+      Esta página não existe — ou ainda não foi afinada. Volta à galeria para
+      veres as guitarras todas.
+    </p>
+    <div class="reveal" style="--reveal-delay: 210ms">
+      <a class="btn btn-primary" href={withBase('/')}>Voltar à galeria</a>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .nao-encontrada {
+    display: grid;
+    justify-items: start;
+    gap: var(--space-3);
+    padding-block: var(--space-8) var(--space-9);
+    max-width: 560px;
+  }
+
+  .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--accent-red);
+    font-weight: 500;
+  }
+</style>

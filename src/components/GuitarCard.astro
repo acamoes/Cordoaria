@@ -1,0 +1,117 @@
+---
+import { Image } from 'astro:assets';
+import type { CollectionEntry } from 'astro:content';
+import { withBase, TIPO_LABEL } from '../lib/utils';
+
+interface Props {
+  guitarra: CollectionEntry<'guitarras'>;
+  index?: number;
+}
+
+const { guitarra, index = 0 } = Astro.props;
+const { nome, marca, modelo, tipo, anoAquisicao, fotos } = guitarra.data;
+const url = withBase(`/guitarras/${guitarra.id}/`);
+const marcaModelo = [marca, modelo].filter(Boolean).join(' ');
+const delay = Math.min(index * 90, 540);
+---
+
+<article
+  class="card reveal"
+  data-tipo={tipo}
+  style={`--reveal-delay: ${delay}ms`}
+>
+  <a class="card-link" href={url}>
+    <div class="card-media">
+      <Image
+        src={fotos.foto1}
+        alt={`Foto principal da guitarra ${nome}`}
+        widths={[420, 640, 900]}
+        sizes="(max-width: 640px) 92vw, (max-width: 1100px) 46vw, 420px"
+        loading={index < 3 ? 'eager' : 'lazy'}
+        transition:name={`foto-hero-${guitarra.id}`}
+      />
+    </div>
+    <div class="card-body">
+      <p class="caption card-meta">
+        <span class="card-tipo">{TIPO_LABEL[tipo]}</span>
+        <span aria-hidden="true">·</span>
+        <span>{anoAquisicao}</span>
+      </p>
+      <h3 class="card-nome">{nome}</h3>
+      {marcaModelo && <p class="small card-marca">{marcaModelo}</p>}
+    </div>
+  </a>
+</article>
+
+<style>
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border-light);
+    border-radius: 24px;
+    overflow: clip;
+    box-shadow: var(--shadow);
+    transition: box-shadow 0.35s ease, translate 0.35s ease;
+  }
+
+  .card:hover {
+    box-shadow: var(--shadow-lg);
+    translate: 0 -4px;
+  }
+
+  .card-link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    height: 100%;
+  }
+
+  .card-media {
+    aspect-ratio: 4 / 5;
+    overflow: clip;
+    background: var(--cream);
+  }
+
+  .card-media :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: scale 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .card:hover .card-media :global(img) {
+    scale: 1.03;
+  }
+
+  .card-body {
+    padding: var(--space-4) var(--space-4) var(--space-5);
+  }
+
+  .card-meta {
+    display: flex;
+    gap: var(--space-2);
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: var(--space-2);
+  }
+
+  .card-tipo {
+    color: var(--secondary);
+    font-weight: 500;
+  }
+
+  .card-nome {
+    font-size: clamp(26px, 3vw, 32px);
+  }
+
+  .card-marca {
+    color: var(--text-secondary);
+    margin-top: var(--space-1);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card:hover .card-media :global(img) {
+      scale: none;
+    }
+  }
+</style>
